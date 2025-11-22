@@ -1,0 +1,10 @@
+com\bnana\TPAStorage$Request.class
+com\bnana\commands\TPAHereCommand.class
+com\bnana\commands\TPAcceptCommand.class
+com\bnana\commands\TPACommand.class
+com\bnana\commands\TPAGUIToggleCommand.class
+com\bnana\TPAStorage.class
+com\bnana\commands\TPADenyCommand.class
+com\bnana\GUIManager.class
+com\bnana\AvoidTPA.class
+com\bnana\listeners\InventoryClickListener.class

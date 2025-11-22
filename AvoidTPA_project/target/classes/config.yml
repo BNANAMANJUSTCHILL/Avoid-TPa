@@ -1,0 +1,13 @@
+# AvoidTPA configuration - editable
+settings:
+  teleport-delay-seconds: 5          # seconds before the teleport actually happens after acceptance
+  send-cooldown-seconds: 30         # seconds player must wait before sending another tpa
+  request-expire-seconds: 30        # seconds until a pending request auto-expires
+  gui-title: "Avoid Tpa"            # GUI title (colors will be applied in code)
+
+world-icons:
+  world: GRASS_BLOCK
+  world_nether: NETHERRACK
+  world_the_end: END_STONE
+  spawn: AMETHYST_BLOCK
+  Spawn: AMETHYST_BLOCK
