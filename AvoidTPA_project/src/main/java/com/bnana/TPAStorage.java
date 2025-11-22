@@ -12,20 +12,17 @@ import java.util.*;
 public class TPAStorage {
 
     private final JavaPlugin plugin;
-    // pending requests: targetUUID -> Request object
+    private final ConfigManager configManager;
     private final Map<UUID, Request> pending = new HashMap<>();
-
-    // send cooldowns: sender UUID -> next allowed epoch millis
     private final Map<UUID, Long> sendCooldown = new HashMap<>();
-
-    // gui prefs per-player (true = enabled)
     private final Map<UUID, Boolean> guiPrefs = new HashMap<>();
 
     private final File prefsFile;
     private final FileConfiguration prefsCfg;
 
-    public TPAStorage(JavaPlugin plugin) {
+    public TPAStorage(JavaPlugin plugin, ConfigManager configManager) {
         this.plugin = plugin;
+        this.configManager = configManager;
         prefsFile = new File(plugin.getDataFolder(), "players.yml");
         if (!prefsFile.exists()) {
             prefsFile.getParentFile().mkdirs();
@@ -68,20 +65,23 @@ public class TPAStorage {
         guiPrefs.put(player, enabled);
     }
 
-    public void addRequest(UUID target, UUID requester) {
-        Request r = new Request(target, requester, System.currentTimeMillis());
+    public void addRequest(UUID target, UUID requester, boolean isHere) {
+        Request r = new Request(target, requester, System.currentTimeMillis(), isHere);
         pending.put(target, r);
 
-        // schedule expiry
-        long expireSec = plugin.getConfig().getLong("settings.request-expire-seconds", 30L);
+        long expireSec = configManager.getRequestExpire();
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             Request now = pending.get(target);
             if (now != null && now.equals(r)) {
                 pending.remove(target);
                 Player t = Bukkit.getPlayer(target);
                 Player req = Bukkit.getPlayer(requester);
-                if (t != null) t.sendMessage(prefix() + "§cThe TPA request has expired.");
-                if (req != null) req.sendMessage(prefix() + "§cYour TPA request to " + (t!=null?t.getName():"(offline)") + " expired.");
+
+                Map<String, String> replacements = new HashMap<>();
+                replacements.put("target", t != null ? t.getName() : "(offline)");
+
+                if (t != null) t.sendMessage(configManager.getMessage("request-expired"));
+                if (req != null) req.sendMessage(configManager.getMessage("request-expired-requester", replacements));
             }
         }, expireSec * 20L);
     }
@@ -94,19 +94,17 @@ public class TPAStorage {
         pending.remove(target);
     }
 
-    private String prefix() {
-        return "§5Avoid §9Tpa §7> §f";
-    }
-
     public static class Request {
         public final UUID target;
         public final UUID requester;
         public final long createdAt;
+        public final boolean isHere;
 
-        public Request(UUID target, UUID requester, long createdAt) {
+        public Request(UUID target, UUID requester, long createdAt, boolean isHere) {
             this.target = target;
             this.requester = requester;
             this.createdAt = createdAt;
+            this.isHere = isHere;
         }
 
         @Override public boolean equals(Object o) {
